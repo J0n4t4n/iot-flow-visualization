@@ -1,0 +1,94 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+
+<input type="button" onclick="addNode()" value="add node" />
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+    var nodes;
+
+    function startNetwork() {
+        /*client = new Paho.MQTT.Client("stable201.container.demo.local", 10110, "visjs-visualizer");
+
+        client.onMessageArrived = onMessageArrived;
+
+        client.connect({
+            userName: "ezmeral",
+            password: "NMH4JieRkWb!LH79KmZW6sNwWJ!E9X",
+            onSuccess: onConnect,
+        })
+
+        function onConnect() {
+            console.log("onConnect");
+            client.subscribe("homie/+/$name");
+            client.subscribe("homie/+/integer/integer");
+        }
+
+        // called when a message arrives
+        function onMessageArrived(message) {
+            if (message.destinationName.endsWith("$name")) {
+                console.log("This is a name: " + message.payloadString)
+                var newId = (Math.random() * 1e7).toString(32);
+                nodes.update({id: newId, label: message.payloadString, group: 'sensor'})
+                edges.update({from: newId, to: 0})
+            } else {
+                console.log("onMessageArrived: " + message.destinationName + " " + message.payloadString);
+            }
+        }*/
+
+        // http://thinkingonthinking.com/Getting-Started-With-D3/
+        var vis = d3.select("#mynetwork")
+            .append("svg")
+        vis.attr("width", 900)
+            .attr("height", 400)
+
+        var nodes = [{x: 30, y: 50},
+                     {x: 50, y: 80},
+                     {x: 90, y: 120}]
+
+        vis.selectAll("circle .nodes")
+            .data(nodes)
+            .enter()
+            .append("svg:circle")
+            .attr("class", "nodes")
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
+            .attr("r", "10px")
+            .attr("fill", "black")
+        
+        var links = [
+            {source: nodes[0], target: nodes[1]},
+            {source: nodes[2], target: nodes[1]}
+        ]
+        
+        vis.selectAll(".line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("x1", function(d) { return d.source.x })
+            .attr("y1", function(d) { return d.source.y })
+            .attr("x2", function(d) { return d.target.x })
+            .attr("y2", function(d) { return d.target.y })
+            .style("stroke", "rgb(6,120,155)")
+    }
+
+    function addNode() {
+        var newId = (Math.random() * 1e7).toString(32);
+        nodes.add({id: newId, label: "I'm new!" });
+    }
+
+    startNetwork()
+</script>
+</body>
+</html>
