@@ -18,6 +18,19 @@
 
 <script type="text/javascript">
     var nodes;
+    const hostMap = new Map();
+
+    async function sha256(message) {
+        // Taken from: https://stackoverflow.com/a/48161723
+        const msgBuffer = new TextEncoder().encode(message);
+
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
+    }
 
     function startNetwork() {
         client = new Paho.MQTT.Client("stable201.container.demo.local", 10110, "visjs-visualizer");
@@ -32,49 +45,85 @@
 
         function onConnect() {
             console.log("onConnect");
+            client.subscribe("homie/+/$mac");
             client.subscribe("homie/+/$name");
+            client.subscribe("homie/+/$state");
             client.subscribe("homie/+/integer/integer");
         }
 
         // called when a message arrives
-        function onMessageArrived(message) {
-            if (message.destinationName.endsWith("$name")) {
-                console.log("This is a name: " + message.payloadString)
-                var newId = (Math.random() * 1e7).toString(32);
-                nodes.update({id: newId, label: message.payloadString, group: 'sensor'})
-                edges.update({from: newId, to: 0})
-            } else {
-                console.log("onMessageArrived: " + message.destinationName + " " + message.payloadString);
+        async function onMessageArrived(message) {
+            var newId = (Math.random() * 1e7).toString(32);
+
+            let sensorId = message.destinationName.match(/homie\/([\w-]*)\//)[1]
+            let sensorIdHash = await sha256(sensorId)
+
+            switch (true) {
+                case message.destinationName.endsWith("$name"):
+                    console.log("This is a name: " + message.payloadString)
+
+                    // Create new node for the sensor
+                    nodes.update({id: sensorIdHash, label: message.payloadString, group: 'sensor'})
+                    // Find host that the sensor is connected to
+                    let responsibleHost = hostMap.get(sensorIdHash)
+                    // Create host -> sensor connection
+                    edges.update({id: sensorIdHash, from: sensorIdHash, to: responsibleHost})
+                    break;
+
+                case message.destinationName.endsWith("$mac"):
+                    console.log("This is a MAC: " + message.payloadString)
+
+                    // Hash the MAC adress to create a hostId
+                    var hostIdHash = await sha256(message.payloadString)
+                    // Create new node for the host
+                    nodes.update({id: hostIdHash, label: message.payloadString.toUpperCase(), group: 'device'})
+                    // Connect host to mosquitto broker
+                    edges.update({id: hostIdHash, from: hostIdHash, to: 0})
+
+                    // Save sensor -> host mapping
+                    hostMap.set(sensorIdHash, hostIdHash)
+
+                    // Search and Fix edges that couldn't be connected, due to the
+                    // $name message arriving earlier than the $mac message
+                    edges.get({
+                    filter: function(item) {
+                        return item.to == null && item.from == sensorIdHash;
+                    }
+                    }).forEach(item => edges.updateOnly({id: item.id, to: hostIdHash}))
+                    break;
+
+                case message.destinationName.endsWith("$state"):
+                    console.log("This is a state change: " + message.payloadString)
+
+                    switch (message.payloadString) {
+                        case "ready":
+                            console.log("Ready")
+                            edges.updateOnly({id: sensorIdHash, color: "#00FF00", label: " "})
+                            break
+                        case "lost":
+                            console.log("Lost")
+                            edges.updateOnly({id: sensorIdHash, color: "#FF0000", label: "Connection lost"})
+                            break
+                        default:
+                            console.log("Unknown state")
+                            edges.updateOnly({id: sensorIdHash, color: "#808080", label: "Unknown error"})
+                            break
+                    }
+                    break;
+
+                default:
+                    console.log("onMessageArrived: " + message.destinationName + " " + message.payloadString);
             }
         }
 
         // create an array with nodes
         nodes = new vis.DataSet([
-            /*{id: 1, label: 'Weight Cell 1', group: "sensor"},
-            {id: 2, label: 'Weight Cell 2', group: "sensor"},
-            {id: 3, label: 'Weight Cell 3', group: "sensor"},
-            {id: 4, label: 'Weight Cell 4', group: "sensor"},
-            {id: 5, label: 'Weight Cell 5', group: "sensor"},
-            {id: 6, label: 'Weight Cell 2', group: "sensor"},
-            {id: 7, label: 'Weight Cell 3', group: "sensor"},
-            {id: 8, label: 'Weight Cell 4', group: "sensor"},
-            {id: 9, label: 'Weight Cell 5', group: "sensor"},*/
-            {id: 0, label: 'Raspberry Pi', group: "device"},
-            {id: 10, label: 'Mosquitto', group: "software"}
+            {id: 0, label: 'Mosquitto', group: "software"}
         ]);
 
         // create an array with edges
         var edges = new vis.DataSet([
-            /*{from: 0, to: 1, label: "Error", length: 200, color: "#C5000B"},
-            {from: 0, to: 2},
-            {from: 0, to: 3},
-            {from: 0, to: 4},
-            {from: 0, to: 5},
-            {from: 0, to: 6},
-            {from: 0, to: 7},
-            {from: 0, to: 8},
-            {from: 0, to: 9},*/
-            {from: 0, to: 10, length: 300}
+            /*{from: 0, to: 1, label: "Error", length: 200, color: "#C5000B"}*/
         ]);
 
         // create a network
