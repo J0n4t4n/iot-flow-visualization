@@ -5,15 +5,14 @@
 
     <style type="text/css">
         #mynetwork {
-            width: 600px;
-            height: 400px;
+            width: 98vw;
+            height: 98vh;
             border: 1px solid lightgray;
         }
     </style>
 </head>
 <body>
 
-<input type="button" onclick="addNode()" value="add node" />
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
@@ -152,11 +151,6 @@
 
         // initialize your network!
         var network = new vis.Network(container, data, options);
-    }
-
-    function addNode() {
-        var newId = (Math.random() * 1e7).toString(32);
-        nodes.add({id: newId, label: "I'm new!" });
     }
 
     startNetwork()
