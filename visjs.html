@@ -5,9 +5,7 @@
 
     <style type="text/css">
         #mynetwork {
-            width: 98vw;
-            height: 98vh;
-            border: 1px solid lightgray;
+
         }
     </style>
 </head>
@@ -95,17 +93,18 @@
                     console.log("This is a state change: " + message.payloadString)
 
                     switch (message.payloadString) {
+                        // Colors: https://coolors.co/4c5454-ff715b-ffffff-1ea896-523f38
                         case "ready":
                             console.log("Ready")
-                            edges.updateOnly({id: sensorIdHash, color: "#00FF00", label: " "})
+                            edges.updateOnly({id: sensorIdHash, color: "#1EA896", label: " "})
                             break
                         case "lost":
                             console.log("Lost")
-                            edges.updateOnly({id: sensorIdHash, color: "#FF0000", label: "Connection lost"})
+                            edges.updateOnly({id: sensorIdHash, color: "#FF715B", label: "Connection lost"})
                             break
                         default:
                             console.log("Unknown state")
-                            edges.updateOnly({id: sensorIdHash, color: "#808080", label: "Unknown error"})
+                            edges.updateOnly({id: sensorIdHash, color: "#523F38", label: "Unknown error"})
                             break
                     }
                     break;
@@ -135,16 +134,17 @@
         };
         var options = {
             groups: {
+                // Colors: https://coolors.co/320e3b-e56399-7f96ff-a6cfd5-dbfcff
                 sensor: {
                     shape: "dot",
-                    color: "#2B7CE9"
+                    color: "#A6CFD5"
                 },
                 device: {
                     shape: "square",
-                    color: "#109618"
+                    color: "#7F96FF"
                 },
                 software: {
-                    color: "#999999"
+                    color: "#E56399"
                 }
             }
         };
