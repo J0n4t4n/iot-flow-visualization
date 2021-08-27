@@ -20,32 +20,32 @@
 
 <script type="text/javascript">
     // used to store the id of the host node for each sensor
-    const hostMap = new Map();
+    const hostMap = new Map()
 
     // create an array with nodes
     var nodes = new vis.DataSet([
-        {id: 0, label: 'Mosquitto', group: "software"}
-    ]);
+        {id: 0, label: 'Mosquitto', group: 'software'}
+    ])
 
     // create an array with edges
     var edges = new vis.DataSet([
-        /*{from: 0, to: 1, label: "Error", length: 200, color: "#C5000B"}*/
-    ]);
+        /*{from: 0, to: 1, label: 'Error', length: 200, color: '#C5000B'}*/
+    ])
 
     // create a network
-    var container = document.getElementById('mynetwork');
+    var container = document.getElementById('mynetwork')
 
-    var x = -container.clientWidth / 2;
-    var y = -container.clientHeight / 2;
-    var step = 90;
+    var x = -container.clientWidth / 2
+    var y = -container.clientHeight / 2
+    var step = 90
 
     // Create static legend to explain node types
     nodes.update({
         id: 1000,
         x: x,
         y: y,
-        label: "Sensor",
-        group: "sensor",
+        label: 'Sensor',
+        group: 'sensor',
         value: 1,
         fixed: true,
         physics: false,
@@ -54,8 +54,8 @@
         id: 1001,
         x: x,
         y: y + step,
-        label: "Device",
-        group: "device",
+        label: 'Device',
+        group: 'device',
         value: 2,
         fixed: true,
         physics: false,
@@ -64,8 +64,8 @@
         id: 1002,
         x: x,
         y: y + 2*step,
-        label: "Software",
-        group: "software",
+        label: 'Software',
+        group: 'software',
         value: 3,
         fixed: true,
         physics: false,
@@ -75,7 +75,7 @@
     var data = {
         nodes: nodes,
         edges: edges,
-    };
+    }
     var options = {
         nodes: {
             shadow: true,
@@ -89,58 +89,58 @@
             // Colors: https://coolors.co/320e3b-e56399-7f96ff-a6cfd5-dbfcff
             sensor: {
                 size: 18,
-                shape: "dot",
-                color: "#A6CFD5"
+                shape: 'dot',
+                color: '#A6CFD5'
             },
             device: {
                 size: 25,
-                shape: "hexagon",
-                color: "#7F96FF"
+                shape: 'hexagon',
+                color: '#7F96FF'
             },
             software: {
                 size: 30,
-                shape: "triangle",
-                color: "#E56399"
+                shape: 'triangle',
+                color: '#E56399'
             }
         }
-    };
+    }
 
     // initialize the vis network
-    var network = new vis.Network(container, data, options);
+    var network = new vis.Network(container, data, options)
 
     // sha256 hash function to generate unique ids for each node
     async function sha256(message) {
         // Taken from: https://stackoverflow.com/a/48161723
-        const msgBuffer = new TextEncoder().encode(message);
+        const msgBuffer = new TextEncoder().encode(message)
 
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
 
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
 
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex;
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+        return hashHex
     }
 
     // define the MQTT broker client
-    client = new Paho.MQTT.Client("stable201.container.demo.local", 10110, "visjs-visualizer");
+    client = new Paho.MQTT.Client('stable201.container.demo.local', 10110, 'visjs-visualizer')
 
     // define function to execute when an MQTT message arrives
-    client.onMessageArrived = onMessageArrived;
+    client.onMessageArrived = onMessageArrived
 
     // connect to the MQTT broker with credentials
     client.connect({
-        userName: "ezmeral",
-        password: "NMH4JieRkWb!LH79KmZW6sNwWJ!E9X",
+        userName: 'ezmeral',
+        password: 'NMH4JieRkWb!LH79KmZW6sNwWJ!E9X',
         onSuccess: onConnect,
     })
 
     // after successful connection subscribe to relevant topics
     function onConnect() {
-        console.log("onConnect");
-        client.subscribe("homie/+/$mac");
-        client.subscribe("homie/+/$name");
-        client.subscribe("homie/+/$state");
-        client.subscribe("homie/+/integer/integer");
+        console.log('onConnect')
+        client.subscribe('homie/+/$mac')
+        client.subscribe('homie/+/$name')
+        client.subscribe('homie/+/$state')
+        client.subscribe('homie/+/integer/integer')
     }
 
     // called when a message arrives
@@ -151,8 +151,8 @@
         let sensorIdHash = await sha256(sensorId)
 
         switch (true) {
-            case message.destinationName.endsWith("$name"):
-                console.log("This is a name: " + message.payloadString)
+            case message.destinationName.endsWith('$name'):
+                console.log('This is a name: ' + message.payloadString)
 
                 // Create new node for the sensor
                 nodes.update({id: sensorIdHash, label: message.payloadString, group: 'sensor'})
@@ -160,17 +160,17 @@
                 let responsibleHost = hostMap.get(sensorIdHash)
                 // Create host -> sensor connection
                 edges.update({id: sensorIdHash, from: sensorIdHash, to: responsibleHost})
-                break;
+                break
 
-            case message.destinationName.endsWith("$mac"):
-                console.log("This is a MAC: " + message.payloadString)
+            case message.destinationName.endsWith('$mac'):
+                console.log('This is a MAC: ' + message.payloadString)
 
                 // Hash the MAC adress to create a hostId
                 var hostIdHash = await sha256(message.payloadString)
                 // Create new node for the host
                 nodes.update({id: hostIdHash, label: message.payloadString.toUpperCase(), group: 'device'})
                 // Connect host to mosquitto broker
-                edges.update({id: hostIdHash, from: hostIdHash, to: 0, color: "#1EA896"})
+                edges.update({id: hostIdHash, from: hostIdHash, to: 0, color: '#1EA896'})
 
                 // Save sensor -> host mapping
                 hostMap.set(sensorIdHash, hostIdHash)
@@ -179,37 +179,37 @@
                 // $name message arriving earlier than the $mac message
                 edges.get({
                 filter: function(item) {
-                    return item.to == null && item.from == sensorIdHash;
+                    return item.to == null && item.from == sensorIdHash
                 }
                 }).forEach(item => edges.updateOnly({id: item.id, to: hostIdHash}))
-                break;
+                break
 
-            case message.destinationName.endsWith("$state"):
-                console.log("This is a state change: " + message.payloadString)
+            case message.destinationName.endsWith('$state'):
+                console.log('This is a state change: ' + message.payloadString)
 
                 // update edges to reflect sensor states
                 switch (message.payloadString) {
                     // Colors: https://coolors.co/4c5454-ff715b-ffffff-1ea896-523f38
-                    case "ready":
-                        console.log("Ready")
+                    case 'ready':
+                        console.log('Ready')
                         // set label to a space as a workaround for a bug
                         // where using the proper delete mechanism doesn't clear the label text in the graph
-                        edges.updateOnly({id: sensorIdHash, color: "#1EA896", label: " "})
+                        edges.updateOnly({id: sensorIdHash, color: '#1EA896', label: ' '})
                         break
-                    case "lost":
-                        console.log("Lost")
-                        edges.updateOnly({id: sensorIdHash, color: "#FF715B", label: "Connection lost"})
+                    case 'lost':
+                        console.log('Lost')
+                        edges.updateOnly({id: sensorIdHash, color: '#FF715B', label: 'Connection lost'})
                         break
                     default:
-                        console.log("Unknown state")
-                        edges.updateOnly({id: sensorIdHash, color: "#523F38", label: "Unknown error"})
+                        console.log('Unknown state')
+                        edges.updateOnly({id: sensorIdHash, color: '#523F38', label: 'Unknown error'})
                         break
                 }
-                break;
+                break
 
             default:
                 // catch for unexpected message types (should not be needed in normal operation)
-                console.log("onMessageArrived: " + message.destinationName + " " + message.payloadString);
+                console.log('onMessageArrived: ' + message.destinationName + ' ' + message.payloadString)
         }
     }
 </script>
