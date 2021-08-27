@@ -4,6 +4,10 @@
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
     <style type="text/css">
+        body {
+            background-color: #f4f4f4;
+        }
+
         #mynetwork {
 
         }
@@ -75,7 +79,7 @@
                     // Create new node for the host
                     nodes.update({id: hostIdHash, label: message.payloadString.toUpperCase(), group: 'device'})
                     // Connect host to mosquitto broker
-                    edges.update({id: hostIdHash, from: hostIdHash, to: 0})
+                    edges.update({id: hostIdHash, from: hostIdHash, to: 0, color: "#1EA896"})
 
                     // Save sensor -> host mapping
                     hostMap.set(sensorIdHash, hostIdHash)
@@ -129,7 +133,7 @@
 
         var x = -container.clientWidth / 2;
         var y = -container.clientHeight / 2;
-        var step = 70;
+        var step = 90;
 
         nodes.update({
             id: 1000,
@@ -165,20 +169,32 @@
         // provide the data in the vis format
         var data = {
             nodes: nodes,
-            edges: edges
+            edges: edges,
         };
         var options = {
+            nodes: {
+                shadow: true,
+                borderWidth: 0.5,
+            },
+            edges: {
+                width: 2,
+                shadow: true,
+            },
             groups: {
                 // Colors: https://coolors.co/320e3b-e56399-7f96ff-a6cfd5-dbfcff
                 sensor: {
+                    size: 18,
                     shape: "dot",
                     color: "#A6CFD5"
                 },
                 device: {
-                    shape: "square",
+                    size: 25,
+                    shape: "hexagon",
                     color: "#7F96FF"
                 },
                 software: {
+                    size: 30,
+                    shape: "triangle",
                     color: "#E56399"
                 }
             }
