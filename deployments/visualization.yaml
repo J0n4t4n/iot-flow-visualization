@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: visualization-deployment
+spec:
+  selector:
+    matchLabels:
+      app: visualization
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: visualization
+    spec:
+      containers:
+      - name: visualization
+        image: j0n4t4n/iot-flow-visualization:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: visualization-deployment-svc
+  labels:
+    hpecp.hpe.com/hpecp-internal-gateway: "true"
+    hpecp.hpe.com/portname-override: "visualization"
+spec:
+  selector:
+    app: visualization
+  type: NodePort
+  ports:
+  - name: visualization-service
+    protocol: TCP
+    port: 80
+    targetPort: 80
