@@ -127,6 +127,41 @@
         // create a network
         var container = document.getElementById('mynetwork');
 
+        var x = -container.clientWidth / 2;
+        var y = -container.clientHeight / 2;
+        var step = 70;
+
+        nodes.update({
+            id: 1000,
+            x: x,
+            y: y,
+            label: "Sensor",
+            group: "sensor",
+            value: 1,
+            fixed: true,
+            physics: false,
+        })
+        nodes.update({
+            id: 1001,
+            x: x,
+            y: y + step,
+            label: "Device",
+            group: "device",
+            value: 2,
+            fixed: true,
+            physics: false,
+        })
+        nodes.update({
+            id: 1002,
+            x: x,
+            y: y + 2*step,
+            label: "Software",
+            group: "software",
+            value: 3,
+            fixed: true,
+            physics: false,
+        })
+
         // provide the data in the vis format
         var data = {
             nodes: nodes,
