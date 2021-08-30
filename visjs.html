@@ -24,8 +24,13 @@
 
     // create an array with nodes
     var nodes = new vis.DataSet([
-        {id: 0, label: 'Mosquitto', group: 'software'}
-    ])
+        {id: 0, label: 'Mosquitto', group: 'software'} // TODO: Replace with "$SYS/broker/version"
+    ],
+    {
+        queue: {
+            delay: 200
+        }
+    })
 
     // create an array with edges
     var edges = new vis.DataSet([
