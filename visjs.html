@@ -24,7 +24,7 @@
 
     // create an array with nodes
     var nodes = new vis.DataSet([
-        {id: 0, label: 'Mosquitto', group: 'software'} // TODO: Replace with "$SYS/broker/version"
+        {id: 0, label: 'Broker', group: 'software'}
     ],
     {
         queue: {
@@ -142,6 +142,7 @@
     // after successful connection subscribe to relevant topics
     function onConnect() {
         console.log('onConnect')
+        client.subscribe('$SYS/broker/version')
         client.subscribe('homie/+/$mac')
         client.subscribe('homie/+/$name')
         client.subscribe('homie/+/$state')
@@ -150,10 +151,14 @@
 
     // called when a message arrives
     async function onMessageArrived(message) {
-        // extract id of the sensor from the topic path
-        let sensorId = message.destinationName.match(/homie\/([\w-]*)\//)[1]
-        // hash the id for use as a node id
-        let sensorIdHash = await sha256(sensorId)
+        let sensorId
+        let sensorIdHash
+        if (message.destinationName.startsWith('homie')) {
+            // extract id of the sensor from the topic path
+            sensorId = message.destinationName.match(/homie\/([\w-]*)\//)[1]
+            // hash the id for use as a node id
+            sensorIdHash = await sha256(sensorId)
+        }
 
         switch (true) {
             case message.destinationName.endsWith('$name'):
@@ -210,6 +215,12 @@
                         edges.updateOnly({id: sensorIdHash, color: '#523F38', label: 'Unknown error'})
                         break
                 }
+                break
+
+            case message.destinationName === '$SYS/broker/version':
+                console.log('This is a broker version: ' + message.payloadString)
+
+                nodes.update({id: 0, label: message.payloadString})
                 break
 
             default:
