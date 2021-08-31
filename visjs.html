@@ -8,10 +8,6 @@
         body {
             background-color: #f4f4f4;
         }
-
-        #mynetwork {
-
-        }
     </style>
 </head>
 <body>
@@ -22,7 +18,7 @@
     // used to store the id of the host node for each sensor
     const hostMap = new Map()
 
-    // create an array with nodes
+    // create a DataSet with nodes
     var nodes = new vis.DataSet([
         {id: 0, label: 'Broker', group: 'software'}
     ],
@@ -32,26 +28,23 @@
         }
     })
 
-    // create an array with edges
-    var edges = new vis.DataSet([
-        /*{from: 0, to: 1, label: 'Error', length: 200, color: '#C5000B'}*/
-    ])
+    // create a DataSet with edges
+    var edges = new vis.DataSet([])
 
-    // create a network
     var container = document.getElementById('mynetwork')
 
+    // calculate position for legend (slightly to the left)
     var x = -container.clientWidth / 2
     var y = -container.clientHeight / 2
     var step = 90
 
-    // Create static legend to explain node types
+    // create static legend to explain node types
     nodes.update({
         id: 1000,
         x: x,
         y: y,
         label: 'Sensor',
         group: 'sensor',
-        value: 1,
         fixed: true,
         physics: false,
     })
@@ -61,17 +54,15 @@
         y: y + step,
         label: 'Device',
         group: 'device',
-        value: 2,
         fixed: true,
         physics: false,
     })
     nodes.update({
         id: 1002,
         x: x,
-        y: y + 2*step,
+        y: y + 2 * step,
         label: 'Software',
         group: 'software',
-        value: 3,
         fixed: true,
         physics: false,
     })
@@ -81,6 +72,7 @@
         nodes: nodes,
         edges: edges,
     }
+    // configure network design using vis options
     var options = {
         nodes: {
             shadow: true,
